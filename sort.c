@@ -58,12 +58,8 @@ void merge(int *array1, int *array2, int size1, int size2) { // shuffles array2 
     return;
 }
 
-static inline int partition(int size) { // returns index to second array
-    return size / 2UL;
-}
-
 void mergeSort(int *array1, int sizeTotal) {
-    int partition2Index = partition(sizeTotal); // also size of first partition
+    int partition2Index = sizeTotal / 2; // also size of first partition
     int *array2 = array1 + partition2Index;
     int size1 = partition2Index;
     int size2 = sizeTotal - partition2Index;
