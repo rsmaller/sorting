@@ -203,15 +203,15 @@ int main(int argc, char **argv) {
     setArray(arrayToSort, arraySize);
 
     startingSortClock = clock();
-    selectionSort(arrayToSort, arraySize);
-    endingSortClock = clock();
-    printf("%lf seconds to selection sort\n", (double)((endingSortClock - startingSortClock) / (double)CLOCKS_PER_SEC));
-    setArray(arrayToSort, arraySize);
-
-    startingSortClock = clock();
     insertionSort(arrayToSort, arraySize);
     endingSortClock = clock();
     printf("%lf seconds to insertion sort\n", (double)((endingSortClock - startingSortClock) / (double)CLOCKS_PER_SEC));
+    setArray(arrayToSort, arraySize);
+
+    startingSortClock = clock();
+    selectionSort(arrayToSort, arraySize);
+    endingSortClock = clock();
+    printf("%lf seconds to selection sort\n", (double)((endingSortClock - startingSortClock) / (double)CLOCKS_PER_SEC));
     setArray(arrayToSort, arraySize);
 
     startingSortClock = clock();
