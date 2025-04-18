@@ -1,5 +1,5 @@
 CC = gcc
-OFLAGS = -O3 -o optsort
+OFLAGS = -O3 -march=native -funroll-loops -fomit-frame-pointer -flto -o optsort
 UFLAGS = -o unoptsort
 
 default: all

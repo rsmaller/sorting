@@ -10,19 +10,15 @@ typedef enum order {
     DESCENDING = 0
 } order;
 
+#define swap(x, y) do {int swapper = *(x); *(x) = *(y); *(y) = swapper;} while (0)
+
 // Generics
-void printArray(int *array, size_t numberOfElements) {
+void printArray(int *array, int numberOfElements) {
     printf("[");
     for (unsigned int i=0; i<numberOfElements-1; i++) {
         printf("%d, ", array[i]);
     }
     printf("%d]\n", array[numberOfElements-1]);
-}
-
-static inline void swap(int *x, int *y) {
-    int swapper = *x;
-    *x = *y;
-    *y = swapper;
 }
 
 static inline int greaterThan(int x, int y) {
@@ -35,11 +31,11 @@ static inline int lessThan(int x, int y) {
 
 
 // Merge Sort
-void merge(int *array1, int *array2, size_t size1, size_t size2) { // shuffles array2 into array1. array1 should have everything
+void merge(int *array1, int *array2, int size1, int size2) { // shuffles array2 into array1. array1 should have everything
     int *internalArray = (int *)malloc((size1 + size2) * sizeof(int));
-    size_t array1Index = 0; 
-    size_t array2Index = 0;
-    size_t totalSize = size1 + size2;
+    int array1Index = 0; 
+    int array2Index = 0;
+    int totalSize = size1 + size2;
     while ((array1Index < size1) && (array2Index < size2)) {
         if (array1[array1Index] < array2[array2Index]) {
             internalArray[array1Index + array2Index] = array1[array1Index];
@@ -62,15 +58,15 @@ void merge(int *array1, int *array2, size_t size1, size_t size2) { // shuffles a
     return;
 }
 
-static inline size_t partition(size_t size) { // returns index to second array
+static inline int partition(int size) { // returns index to second array
     return size / 2UL;
 }
 
-void mergeSort(int *array1, size_t sizeTotal) {
-    size_t partition2Index = partition(sizeTotal); // also size of first partition
+void mergeSort(int *array1, int sizeTotal) {
+    int partition2Index = partition(sizeTotal); // also size of first partition
     int *array2 = array1 + partition2Index;
-    size_t size1 = partition2Index;
-    size_t size2 = sizeTotal - partition2Index;
+    int size1 = partition2Index;
+    int size2 = sizeTotal - partition2Index;
     if (sizeTotal <=1) return;
     mergeSort(array1, size1);
     mergeSort(array2, size2);
@@ -79,7 +75,7 @@ void mergeSort(int *array1, size_t sizeTotal) {
 }
 
 // Bubble Sort
-void bubbleSort(int *array, size_t numberOfElements) {
+void bubbleSort(int *array, int numberOfElements) {
     int passthroughSort = 1;
     int swapper;
     while (passthroughSort) {
@@ -96,11 +92,11 @@ void bubbleSort(int *array, size_t numberOfElements) {
 }
 
 // Selection Sort
-void selectionSort(int *array, size_t numberOfElements) {
-    size_t currentLargestIndex;
+static inline void selectionSort(int * __restrict array, int numberOfElements) {
+    int currentLargestIndex;
     int currentLargestValue = INT_MIN;
-    for (size_t numberOfSortedElements = 0; numberOfSortedElements < numberOfElements; numberOfSortedElements++) {
-        for (size_t i=0; i<(numberOfElements - numberOfSortedElements); i++) {
+    for (int numberOfSortedElements = 0; numberOfSortedElements < numberOfElements; numberOfSortedElements++) {
+        for (int i=0; i<(numberOfElements - numberOfSortedElements); i++) {
             if (array[i] > currentLargestValue) {
                 currentLargestValue = array[i];
                 currentLargestIndex = i;
@@ -112,45 +108,68 @@ void selectionSort(int *array, size_t numberOfElements) {
 }
 
 // Insertion Sort
-void insertionSort(int *array, size_t numberOfElements) {
-    size_t i;
-    for (i=1; i<numberOfElements; i++) {
+static inline void insertionSort(int * __restrict array, int numberOfElements) {
+    for (int i=1; i<numberOfElements; i++) {
         int key = array[i];
         int j = i - 1; // must be signed for indexing in inner for loop to properly work.
-        for (; (j>=0) && (array[j] > key); j--) {
+        while ((j >= 0) && (array[j] > key)) {
             array[j+1] = array[j];
+            j--;
         }
         array[j + 1] = key;
     }
 }
 
 // Quick Sort
-void quickSort(int *array, size_t numberOfElements, void (*smallSorterFunction)(int *, size_t)) {
-    if (numberOfElements < 2) return;
-    else if (numberOfElements <= 32) {
-        smallSorterFunction(array, numberOfElements);
-        return;
-    }
-    int pivotIndex = rand() % numberOfElements;
-    int newPivotIndex;
-    int i = -1;
-    int j = 0;
-    swap(array + pivotIndex, array + numberOfElements - 1); // move pivot to end
-    pivotIndex = numberOfElements - 1;
-    for (; j < numberOfElements - 1; j++) {
-        if ((array[j] < array[pivotIndex])) {
-            swap(array + j, array + (++i));
+int quickSortPartition(int * __restrict array, int low, int high) {
+    int mid = low + ((high - low) / 2);
+    if (array[high] < array[low]) swap(array + low, array + high);
+    swap(&high, &low);
+    if (array[mid] < array[low]) swap(array + mid, array + low);
+    swap(&mid, &low);
+    if (array[high] < array[mid]) swap(array + high, array + mid);
+    swap(&high, &mid);
+    int pivotIndex = mid;
+    
+    int pivotValue = array[pivotIndex];
+    swap(array + pivotIndex, array + high);
+    pivotIndex = high;
+    int i = low;
+    for (int j = low; j < high; j++) {
+        if (array[j] <= pivotValue) {
+            swap(array+i, array+j);
+            i++;
         }
     }
-    newPivotIndex = i + 1;
-    swap(array + pivotIndex, array + newPivotIndex); // move pivot to its correct spot
-    int *leftArray = array;
-    int *rightArray = array + newPivotIndex + 1;
-    int leftArraySize = newPivotIndex;
-    int rightArraySize = (numberOfElements - newPivotIndex) - 1;
-    quickSort(leftArray, leftArraySize, smallSorterFunction); // for documentation: both original recursive calls.
-    quickSort(rightArray, rightArraySize, smallSorterFunction);
+    swap(array+i, array+high); // i is now index that pivot belongs. put it there.
+    return i; // return pivot index
+}
+
+void quickSortRecurse(int * __restrict array, int low, int high) {
+    int pivotIndex;
+    while ((high - low) > 32) {
+        pivotIndex = quickSortPartition(array, low, high); // this does the reorganizing and returns the new pivot index to split at
+        if (((pivotIndex - 1) - low) > (high - (pivotIndex + 1))) {
+            quickSortRecurse(array, pivotIndex + 1, high);
+            high = pivotIndex - 1;
+        } else {
+            quickSortRecurse(array, low, pivotIndex - 1);
+            low = pivotIndex + 1;
+        }
+    }
+    insertionSort(array + low, high - low + 1);
+}
+
+void quickSort(int * __restrict array, int numberOfElements) {
+    quickSortRecurse(array, 0, numberOfElements - 1);
     return;
+}
+
+// Other
+void setArray(int *array, int arraySize) {
+    for (int i=0; i<arraySize; i++) {
+        array[i] = rand() % 100000000; // for array readability
+    }
 }
 
 int main(int argc, char **argv) {
@@ -166,52 +185,40 @@ int main(int argc, char **argv) {
         printf("Please enter a meaningful array size.\n");
         exit(1);
     }
-    int *randomizedArray = (int *)malloc(sizeof(int) * arraySize);
     int *arrayToSort = (int *)malloc(sizeof(int) * arraySize);
-    int randomValue;
-    for (int i=0; i<arraySize; i++) {
-        randomValue = rand() % 100000000; // for array readability
-        randomizedArray[i] = randomValue;
-        arrayToSort[i] = randomValue;
-    }
-    clock_t startingSortClock, endingSortClock;
+    setArray(arrayToSort, arraySize);
     
+    clock_t startingSortClock, endingSortClock;
+
+    startingSortClock = clock();
+    quickSort(arrayToSort, arraySize);
+    endingSortClock = clock();
+    printf("%lf seconds to quick sort\n", (double)((endingSortClock - startingSortClock) / (double)CLOCKS_PER_SEC));
+    setArray(arrayToSort, arraySize);
+
     startingSortClock = clock();
     mergeSort(arrayToSort, arraySize);
     endingSortClock = clock();
     printf("%lf seconds to merge sort\n", (double)((endingSortClock - startingSortClock) / (double)CLOCKS_PER_SEC));
-    memcpy(arrayToSort, randomizedArray, arraySize);
+    setArray(arrayToSort, arraySize);
 
     startingSortClock = clock();
-    quickSort(arrayToSort, arraySize, insertionSort);
+    selectionSort(arrayToSort, arraySize);
     endingSortClock = clock();
-    printf("%lf seconds to quick insertion sort\n", (double)((endingSortClock - startingSortClock) / (double)CLOCKS_PER_SEC));
-    memcpy(arrayToSort, randomizedArray, arraySize);
+    printf("%lf seconds to selection sort\n", (double)((endingSortClock - startingSortClock) / (double)CLOCKS_PER_SEC));
+    setArray(arrayToSort, arraySize);
 
     startingSortClock = clock();
-    quickSort(arrayToSort, arraySize, selectionSort);
+    insertionSort(arrayToSort, arraySize);
     endingSortClock = clock();
-    printf("%lf seconds to quick selection sort\n", (double)((endingSortClock - startingSortClock) / (double)CLOCKS_PER_SEC));
-    memcpy(arrayToSort, randomizedArray, arraySize);
+    printf("%lf seconds to insertion sort\n", (double)((endingSortClock - startingSortClock) / (double)CLOCKS_PER_SEC));
+    setArray(arrayToSort, arraySize);
 
-    // startingSortClock = clock();
-    // selectionSort(arrayToSort, arraySize);
-    // endingSortClock = clock();
-    // printf("%lf seconds to selection sort\n", (double)((endingSortClock - startingSortClock) / (double)CLOCKS_PER_SEC));
-    // memcpy(arrayToSort, randomizedArray, arraySize);
+    startingSortClock = clock();
+    bubbleSort(arrayToSort, arraySize);
+    endingSortClock = clock();
+    printf("%lf seconds to bubble sort\n", (double)((endingSortClock - startingSortClock) / (double)CLOCKS_PER_SEC));
+    setArray(arrayToSort, arraySize);
 
-    // startingSortClock = clock();
-    // insertionSort(arrayToSort, arraySize);
-    // endingSortClock = clock();
-    // printf("%lf seconds to insertion sort\n", (double)((endingSortClock - startingSortClock) / (double)CLOCKS_PER_SEC));
-    // memcpy(arrayToSort, randomizedArray, arraySize);
-
-    // startingSortClock = clock();
-    // bubbleSort(arrayToSort, arraySize);
-    // endingSortClock = clock();
-    // printf("%lf seconds to bubble sort\n", (double)((endingSortClock - startingSortClock) / (double)CLOCKS_PER_SEC));
-    // memcpy(arrayToSort, randomizedArray, arraySize);
-
-    free(randomizedArray);
     free(arrayToSort);
 }
